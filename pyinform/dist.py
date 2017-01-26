@@ -16,14 +16,18 @@ class Dist:
     such as :py:func:`pyinform.activeinfo.active_info` to building
     distributions and then applying standard entropy measures.
     """
-
     def __init__(self, n):
         """
         Construct a distribution.
 
         If the parameter *n* is an integer, the distribution is constructed
         with a zeroed support of size *n*. If *n* is a list or
-        ``numpy.ndarray``, the sequence is treated as the underlying support.
+        ``numpy.ndarray``, of integer values, the sequence is treated as the 
+        underlying support. On the other hand, if *n* is a list or 
+        ``numpy.ndarray``, of floating point values, it is treated as a probability 
+        distribution and must sum to unity. Note, if a probability distribution 
+        is given as the underlying support, it will first be converted to a 
+        histogram with a precision of 9 significant figures.
 
         .. rubric:: Examples:
         
@@ -31,20 +35,47 @@ class Dist:
 
             >>> d = Dist(5)
             >>> d = Dist([0,0,1,2])
+            >>> d = Dist([0.2,0.3,0.4,0.1])
 
         :param n: the support for the distribution
         :type n: int, list or ``numpy.ndarray``
         :raises ValueError: if support is empty or multidimensional
+        :raises ValueError: if probability distribution does not sum to unity
+        :raises ValueError: if element type of provided array is neither float or int
         :raises MemoryError: if memory allocation fails within the C call
         """
+
+        # Check if its a list or not
         if isinstance(n, list) or isinstance(n, np.ndarray):
-            xs = np.ascontiguousarray(n, dtype=np.uint32)
-            if xs.ndim != 1:
+            n = np.asarray(n)
+
+            # Make sure number of dimensions is one
+            if n.ndim != 1:
                 raise ValueError("support is multi-dimenstional")
-            elif xs.size == 0:
+            elif n.size == 0:
                 raise ValueError("support is empty")
+            
+            # If floating point values, create histogram from given probability distribution    
+            if issubclass(n.dtype.type,(float,np.floating)):
+                if np.isclose(np.sum(n),1.0) != True:
+                    raise ValueError("probability distribution must sum to unity")
+                else:
+                    n = np.copy(np.asarray(n,dtype=np.float))
+                    for i in range(np.size(n)):
+                        n[i] = np.round(n[i],9)*1e9
+                xs = np.ascontiguousarray(n,dtype=np.uint32)
+
+            # If integer values, use input as underlying support
+            elif issubclass(n.dtype.type,(int,np.integer)):            
+                xs = np.ascontiguousarray(n,dtype=np.uint32) 
+
+            else:
+                raise ValueError("data type not understood")
+
             data = xs.ctypes.data_as(POINTER(c_uint))
             self._dist = _dist_create(data, xs.size)
+            
+        # The branch for a single integer
         else:
             if n <= 0:
                 raise ValueError("support is zero")
