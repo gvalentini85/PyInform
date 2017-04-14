@@ -1,3 +1,4 @@
+
 # Copyright 2016 ELIFE. All rights reserved.
 # Use of this source code is governed by a MIT
 # license that can be found in the LICENSE file.
@@ -123,7 +124,7 @@ from ctypes import byref, c_char_p, c_int, c_ulong, c_double, POINTER
 from pyinform import _inform
 from pyinform.error import ErrorCode, error_guard
 
-def transfer_entropy(source, target, k, b=0, local=False):
+def transfer_entropy(source, target, k, b=0, local=False, moving_window=False):
     """
     Compute the local or average transfer entropy from one time series to
     another with target history length *k*.
@@ -172,7 +173,10 @@ def transfer_entropy(source, target, k, b=0, local=False):
         q = max(0, m - k)
         ai = np.empty((n,q), dtype=np.float64)
         out = ai.ctypes.data_as(POINTER(c_double))
-        _local_transfer_entropy(ydata, xdata, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))
+        if moving_window is False:
+            _local_transfer_entropy(ydata, xdata, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))
+        else:
+            _local_transfer_entropy2(ydata, xdata, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))
     else:
         ai = _transfer_entropy(ydata, xdata, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), byref(e))
 
@@ -185,5 +189,6 @@ _transfer_entropy.argtypes = [POINTER(c_int), POINTER(c_int), c_ulong, c_ulong, 
 _transfer_entropy.restype = c_double
 
 _local_transfer_entropy = _inform.inform_local_transfer_entropy
+_local_transfer_entropy2 = _inform.inform_local_transfer_entropy2
 _local_transfer_entropy.argtypes = [POINTER(c_int), POINTER(c_int), c_ulong, c_ulong, c_int, c_ulong, POINTER(c_double), POINTER(c_int)]
 _local_transfer_entropy.restype = POINTER(c_double)

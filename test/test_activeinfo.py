@@ -205,5 +205,22 @@ class TestLocalActiveInfo(unittest.TestCase):
         self.assertAlmostEqual(0.662146,
                 active_info(xs, 2, local=True).mean(), places=6)
 
+    def test_active_info_base_2_ensemble_moving_window(self):
+        xs = [[1,1,0,0,1,0,0,1],[0,0,0,1,0,0,0,1]]
+        self.assertAlmostEqual(0.3333333,
+                active_info(xs, 2, local=True, moving_window=True).mean(), places=6)
+
+        xs = [[1,0,0,0,0,0,0,0,0],
+              [0,0,1,1,1,1,0,0,0],
+              [1,0,0,0,0,0,0,1,1],
+              [1,0,0,0,0,0,0,1,1],
+              [0,0,0,0,0,1,1,0,0],
+              [0,0,0,0,1,1,0,0,0],
+              [1,1,1,0,0,0,0,1,1],
+              [0,0,0,1,1,1,1,0,0],
+              [0,0,0,0,0,0,1,1,0]]
+        self.assertAlmostEqual(0.495679, active_info(xs, 2, local=True, moving_window=True).mean(), places=6)
+
+
 if __name__ == "__main__":
     unittest.main()

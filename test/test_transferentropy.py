@@ -291,5 +291,44 @@ class TestLocalTransferEntropy(unittest.TestCase):
         self.assertAlmostEqual(0.000000,
                 transfer_entropy(ys[:-1,:], ys[:-1,:], 2, local=True).mean(), places=6)
 
+    def test_transfer_entropy_base_2_ensemble_moving_window(self):
+        xs = np.asarray([[1,1,1,0,0,1,1,0,1,0],
+                         [0,1,0,1,1,1,0,0,0,0],
+                         [0,0,0,1,0,0,0,1,0,0],
+                         [0,0,1,0,0,0,1,0,0,1],
+                         [0,0,1,1,1,1,1,0,0,0]], dtype=np.int32)
+        ys = np.asarray([[0,1,0,0,0,1,0,1,1,0],
+                         [0,0,0,1,1,1,0,1,0,0],
+                         [1,0,1,0,1,0,0,0,1,0],
+                         [0,1,1,0,1,1,1,1,1,1],
+                         [0,0,1,1,0,0,0,0,0,1]], dtype=np.int32)
+        self.assertAlmostEqual(0.000000,
+                transfer_entropy(xs, xs, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.3066165,
+                transfer_entropy(ys, xs, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.300000,        
+                transfer_entropy(xs, ys, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.000000,
+                transfer_entropy(ys, ys, 2, local=True, moving_window=True).mean(), places=6)
+
+        xs = np.asarray([[0,1,0,1,0,0,1,1,1,1],
+                         [0,1,0,1,1,1,0,0,1,0],
+                         [1,1,1,1,0,0,1,1,1,1],
+                         [1,0,0,0,0,0,0,0,1,0],
+                         [0,1,1,1,1,1,0,1,1,1]], dtype=np.int32)
+        ys = np.asarray([[1,1,1,1,1,0,0,0,1,0],
+                         [0,1,1,0,0,1,1,0,0,0],
+                         [0,1,1,1,0,1,0,0,0,0],
+                         [0,1,0,0,1,1,0,1,0,0],
+                         [0,1,1,1,1,0,1,1,1,1]], dtype=np.int32)
+        self.assertAlmostEqual(0.000000,
+                transfer_entropy(xs, xs, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.068872,
+                transfer_entropy(ys, xs, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.2622556,
+                transfer_entropy(xs, ys, 2, local=True, moving_window=True).mean(), places=6)
+        self.assertAlmostEqual(0.000000,
+                transfer_entropy(ys, ys, 2, local=True, moving_window=True).mean(), places=6)
+
 if __name__ == "__main__":
     unittest.main()

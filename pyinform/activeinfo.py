@@ -102,7 +102,7 @@ from pyinform import _inform
 from pyinform.error import ErrorCode, error_guard
 
 
-def active_info(series, k, b=0, local=False):
+def active_info(series, k, b=0, local=False, moving_window=False):
     """
     Compute the average or local active information of a timeseries with history
     length *k*.
@@ -144,7 +144,10 @@ def active_info(series, k, b=0, local=False):
         q = max(0, m - k)
         ai = np.empty((n,q), dtype=np.float64)
         out = ai.ctypes.data_as(POINTER(c_double))
-        _local_active_info(data, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))
+        if moving_window is False:
+            _local_active_info(data, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))
+        else:
+            _local_active_info2(data, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), out, byref(e))            
     else:
         ai = _active_info(data, c_ulong(n), c_ulong(m), c_int(b), c_ulong(k), byref(e))
 
@@ -157,5 +160,6 @@ _active_info.argtypes = [POINTER(c_int), c_ulong, c_ulong, c_int, c_ulong, POINT
 _active_info.restype = c_double
 
 _local_active_info = _inform.inform_local_active_info
+_local_active_info2 = _inform.inform_local_active_info2
 _local_active_info.argtypes = [POINTER(c_int), c_ulong, c_ulong, c_int, c_ulong, POINTER(c_double), POINTER(c_int)]
 _local_active_info.restype = POINTER(c_double)
